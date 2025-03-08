@@ -30,47 +30,16 @@
       font-family: Arial, sans-serif;
     }
     /*----------------------
-      玻璃質感容器
-    ----------------------*/
-    .glass-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      padding: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
-    .glass-background {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255,255,255,0.2);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.18);
-      z-index: 0;
-    }
-    /*----------------------
       主要內容區
     ----------------------*/
     .content {
       position: relative;
       z-index: 1;
-      background: rgba(255,255,255,0.25);
-      padding: 20px 10px 70px 10px;
+      background: rgba(255,255,255,0.8);
+      padding: 20px;
       border-radius: 15px;
-      box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
-      text-align: center;
-      color: #333;
-      max-width: 95%;
-      width: 100%;
-      margin: 0 auto;
+      margin: 20px auto;
+      max-width: 800px;
       font-size: 0.875rem;
     }
     /*----------------------
@@ -83,15 +52,13 @@
       margin-bottom: 10px;
       border: 1px solid rgba(0,0,0,0.1);
       border-radius: 5px;
-      background: rgba(255,255,255,0.6);
-      text-align: left;
+      background: rgba(255,255,255,0.9);
     }
     .animal-photo {
       flex: 0 0 130px;
       width: 130px;
       height: 156px;
-      margin: 0 10px;
-      align-self: flex-start;
+      margin-right: 10px;
     }
     .animal-photo img {
       width: 100%;
@@ -99,7 +66,6 @@
       object-fit: contain;
     }
     .info-grid {
-      padding-left: 10px;
       text-align: left;
     }
     .info-field {
@@ -119,43 +85,39 @@
   </style>
 </head>
 <body>
-  <!-- 首頁展示區 -->
-  <div class="glass-overlay" id="homePage">
-    <div class="glass-background"></div>
-    <div class="content">
-      <h1>動物園每日展示與評論</h1>
-      <p>歡迎來到我們的動物園！以下是目前的動物清單：</p>
-      
-      {% if animals %}
-        {% for animal in animals %}
-          <div class="animal-entry">
-            <div class="animal-photo">
-              <img src="{% static 'image/a.jpg' %}" alt="動物圖片">
+  <div class="content">
+    <h1>動物園每日展示與評論</h1>
+    <p>歡迎來到我們的動物園！以下是目前的動物清單：</p>
+    
+    {% if animals %}
+      {% for animal in animals %}
+        <div class="animal-entry">
+          <div class="animal-photo">
+            <img src="{% static 'image/animal.jpg' %}" alt="動物圖片">
+          </div>
+          <div class="info-grid">
+            <div class="info-field">
+              <span class="field-label">名稱:</span>
+              <span class="field-content">{{ animal.name }}</span>
             </div>
-            <div class="info-grid">
-              <div class="info-field">
-                <span class="field-label">名稱:</span>
-                <span class="field-content">{{ animal.name }}</span>
-              </div>
-              <div class="info-field">
-                <span class="field-label">物種:</span>
-                <span class="field-content">{{ animal.species }}</span>
-              </div>
-              <div class="info-field">
-                <span class="field-label">年齡:</span>
-                <span class="field-content">{{ animal.age }} 歲</span>
-              </div>
-              <div class="info-field">
-                <span class="field-label">體重:</span>
-                <span class="field-content">{{ animal.weight }} kg</span>
-              </div>
+            <div class="info-field">
+              <span class="field-label">物種:</span>
+              <span class="field-content">{{ animal.species }}</span>
+            </div>
+            <div class="info-field">
+              <span class="field-label">年齡:</span>
+              <span class="field-content">{{ animal.age }} 歲</span>
+            </div>
+            <div class="info-field">
+              <span class="field-label">體重:</span>
+              <span class="field-content">{{ animal.weight }} kg</span>
             </div>
           </div>
-        {% endfor %}
-      {% else %}
-        <p>目前沒有動物資料。</p>
-      {% endif %}
-    </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>目前沒有動物資料。</p>
+    {% endif %}
   </div>
 </body>
 </html>
