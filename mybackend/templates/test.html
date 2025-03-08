@@ -3,121 +3,205 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <!-- 讓網頁在各種裝置上適當縮放 -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>動物園每日展示與評論</title>
+  <title>動物園每日展示</title>
   <style>
-    /*----------------------
-      基本重設與安全區域設定
-    ----------------------*/
-    html, body {
+    :root {
+      --bg-overlay: rgba(255,255,255,0.2);
+      --container-bg: rgba(255,255,255,0.95);
+      --primary-color: #333;
+      --light-gray: #e6e6e6;
+      --border-color: #ddd;
+    }
+    * {
       margin: 0;
       padding: 0;
-      overflow: hidden;
-      padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
       box-sizing: border-box;
     }
-    *, *::before, *::after {
-      box-sizing: inherit;
-    }
-    /*----------------------
-      背景與全局字型
-    ----------------------*/
-    body {
+    html, body {
+      min-height: 100vh;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
       background: url('{% static "image/background.jpg" %}') no-repeat center center/cover;
-      height: 100vh;
-      position: relative;
-      font-family: Arial, sans-serif;
+      overflow: hidden;
+      padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+      display: flex;
+      flex-direction: column;
     }
-    /*----------------------
-      主要內容區
-    ----------------------*/
-    .content {
+    .glass-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--bg-overlay);
+      backdrop-filter: blur(8px);
+      z-index: 0;
+    }
+    .container {
+      flex-grow: 1;
+      max-height: 100vh;
+      overflow: auto; /* 改成 auto 讓下方資訊卡不會被裁切 */
       position: relative;
-      z-index: 1;
-      background: rgba(255,255,255,0.8);
-      padding: 20px;
-      border-radius: 15px;
-      margin: 20px auto;
+      z-index: 2;
       max-width: 800px;
-      font-size: 0.875rem;
+      margin: 40px auto;
+      padding: 20px;
+      background: var(--container-bg);
+      border-radius: 15px;
+      border-top: 2px solid var(--border-color);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
     }
-    /*----------------------
-      動物資訊卡
-    ----------------------*/
-    .animal-entry {
+    .page-title {
+      text-align: center;
+      margin: 20px 0;
+      color: var(--primary-color);
+      font-size: 2rem;
+    }
+    .hall-menu {
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      padding: 10px;
+      background: #f8f8f8;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .hall-menu a {
+      flex: none;
+      padding: 8px 12px;
+      text-decoration: none;
+      color: var(--primary-color);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      white-space: nowrap;
+    }
+    .hall-menu a.active, .hall-menu a:hover {
+      background: var(--light-gray);
+    }
+    .top-section {
+      display: flex;
+      align-items: stretch;  /* 讓兩邊高度一致 */
+      border-bottom: 1px solid var(--border-color);
+    }
+    .photo-area {
+      flex: 0 0 60%;
+      height: 300px;
       display: flex;
       align-items: center;
+      justify-content: center;
+      border-right: 1px solid var(--border-color);
+      background: #fff;
       padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid rgba(0,0,0,0.1);
-      border-radius: 5px;
-      background: rgba(255,255,255,0.9);
     }
-    .animal-photo {
-      flex: 0 0 130px;
-      width: 130px;
-      height: 156px;
-      margin-right: 10px;
-    }
-    .animal-photo img {
-      width: 100%;
-      height: 100%;
+    .photo-area img {
+      max-width: 100%;
+      max-height: 100%;
       object-fit: contain;
     }
-    .info-grid {
+    .intro-area {
+      flex: 0 0 40%;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: #fff;
+    }
+    .table-container {
+      flex-grow: 1;
+      overflow: auto;
+      max-height: 50vh;
+      background: #fff;
+      position: relative;
+      margin-top: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ccc;
       text-align: left;
     }
-    .info-field {
-      display: flex;
-      margin: 4px 0;
+    thead th {
+      background: #f0f0f0;
+      position: sticky;
+      top: 0;
+      z-index: 2;
     }
-    .field-label {
-      flex: 0 0 45px;
-      font-weight: bold;
-      margin-right: 4px;
+    tr:hover {
+      background: #e6e6e6;
+      cursor: pointer;
     }
-    .field-content {
-      flex: 1;
-      word-wrap: break-word;
-      word-break: break-all;
+    @media (max-width: 480px) {
+      .container {
+        max-width: 95%;
+        margin: 20px auto;
+        padding: 10px;
+      }
+      /* 保持 .top-section 為 row 排列 */
+      .photo-area {
+        flex: 0 0 60%;
+        height: 200px; /* 手機上縮小高度 */
+        padding: 10px;
+        border-right: 1px solid var(--border-color);
+      }
+      .intro-area {
+        flex: 0 0 40%;
+        padding: 10px;
+      }
+      .table-container {
+        max-height: 40vh;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="content">
-    <h1>動物園每日展示與評論</h1>
-    <p>歡迎來到我們的動物園！以下是目前的動物清單：</p>
-    
-    {% if animals %}
-      {% for animal in animals %}
-        <div class="animal-entry">
-          <div class="animal-photo">
-            <img src="{% static 'image/animal.jpg' %}" alt="動物圖片">
-          </div>
-          <div class="info-grid">
-            <div class="info-field">
-              <span class="field-label">名稱:</span>
-              <span class="field-content">{{ animal.name }}</span>
-            </div>
-            <div class="info-field">
-              <span class="field-label">物種:</span>
-              <span class="field-content">{{ animal.species }}</span>
-            </div>
-            <div class="info-field">
-              <span class="field-label">年齡:</span>
-              <span class="field-content">{{ animal.age }} 歲</span>
-            </div>
-            <div class="info-field">
-              <span class="field-label">體重:</span>
-              <span class="field-content">{{ animal.weight }} kg</span>
-            </div>
-          </div>
-        </div>
+  <div class="glass-overlay"></div>
+  <div class="container">
+    <div class="page-title">動物園 - 動物清單</div>
+    <nav class="hall-menu">
+      <a href="{% url 'home' %}" class="{% if not request.GET.hall_id %}active{% endif %}">全部</a>
+      {% for hall in halls %}
+        <a href="{% url 'home' %}?hall_id={{ hall.id }}" class="{% if request.GET.hall_id|stringformat:"s" == hall.id|stringformat:"s" %}active{% endif %}">
+          {{ hall.name }}
+        </a>
       {% endfor %}
-    {% else %}
-      <p>目前沒有動物資料。</p>
-    {% endif %}
+    </nav>
+    <section class="top-section">
+      <div class="photo-area" id="photoArea">
+        {% if animals|length > 0 and animals.0.photo %}
+          <img src="{{ animals.0.photo.url }}" alt="{{ animals.0.name }}">
+        {% else %}
+          <img src="{% static 'image/animal_default.jpg' %}" alt="預設照片">
+        {% endif %}
+      </div>
+      <div class="intro-area" id="introArea">
+        <p id="introText">請從下方表格中選擇動物以查看介紹</p>
+      </div>
+    </section>
+    <div class="table-container">
+      <table id="animalTable">
+        <thead>
+          <tr>
+            <th>名稱</th>
+            <th>物種</th>
+            <th>年齡</th>
+            <th>體重 (kg)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for animal in animals %}
+          <tr data-photo="{% if animal.photo %}{{ animal.photo.url }}{% else %}{% static 'image/animal_default.jpg' %}{% endif %}"
+              data-intro="名稱：{{ animal.name }}｜物種：{{ animal.species }}｜年齡：{{ animal.age }}｜體重：{{ animal.weight }} kg">
+            <td>{{ animal.name }}</td>
+            <td>{{ animal.species }}</td>
+            <td>{{ animal.age }}</td>
+            <td>{{ animal.weight }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </body>
 </html>
