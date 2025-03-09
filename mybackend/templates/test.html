@@ -233,8 +233,8 @@
           <tr>
             <th>名稱</th>
             <th>時段</th>
-            <th>物種</th>
-            <th>年齡</th>
+            <th>身材</th>
+            <th>台費</th>
           </tr>
         </thead>
       </table>
@@ -243,11 +243,11 @@
           <tbody>
             {% for animal in animals %}
             <tr data-photo="{% if animal.photo %}{{ animal.photo.url }}{% else %}{% static 'image/animal_default.jpg' %}{% endif %}"
-                data-intro="名稱：{{ animal.name }}｜時段：{{ animal.time_slot }}｜物種：{{ animal.species }}｜年齡：{{ animal.age }}">
+                data-intro="名稱：{{ animal.name }}｜時段：{{ animal.time_slot }}｜身材：{{ animal.size_display }}｜台費：{{ animal.fee }}">
               <td>{{ animal.name }}</td>
               <td class="time-cell">{{ animal.time_slot }}</td>
-              <td>{{ animal.species }}</td>
-              <td>{{ animal.age }}</td>
+              <td>{{ animal.size_display }}</td>
+              <td>{{ animal.fee }}</td>
             </tr>
             {% endfor %}
           </tbody>
