@@ -3,11 +3,11 @@ from .models import Animal, Hall
 
 @admin.register(Animal)
 class AnimalAdmin(admin.ModelAdmin):
-    # 列表頁面只顯示「名稱」、「時段」、「物種」、「年齡」與「館別」
-    list_display = ('name', 'time_slot', 'species', 'age', 'hall')
-    search_fields = ('name', 'species', 'time_slot')
-    # 編輯表單中僅包含這些欄位，不包含體重
-    fields = ('name', 'time_slot', 'age', 'species', 'hall', 'photo')
+    # 更新為新的欄位名稱（size, fee）
+    list_display = ('name', 'time_slot', 'size', 'fee', 'hall')
+    search_fields = ('name', 'size', 'time_slot')
+    # 修改 fields，確保不包含已刪除的欄位
+    fields = ('name', 'time_slot', 'fee', 'size', 'hall', 'photo')
 
 @admin.register(Hall)
 class HallAdmin(admin.ModelAdmin):

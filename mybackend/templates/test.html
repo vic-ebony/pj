@@ -20,7 +20,7 @@
       padding: 0;
       box-sizing: border-box;
     }
-    /* 固定高度且隱藏頁面捲軸 */
+    /* 固定頁面高度並隱藏全頁捲軸 */
     html, body {
       height: 100vh;
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -111,7 +111,7 @@
       text-align: center;
       background: #fff;
     }
-    /* 分離的表格結構 */
+    /* 分離表頭與表身的表格結構 */
     .table-wrapper {
       margin-top: 20px;
       background: #fff;
@@ -120,7 +120,7 @@
       flex-direction: column;
       overflow: hidden;
     }
-    /* 表頭 */
+    /* 表頭：使用 table-layout: fixed */
     .header-table {
       width: 100%;
       border-collapse: collapse;
@@ -135,7 +135,29 @@
       word-break: break-all;
       overflow-wrap: break-word;
     }
-    /* 表身容器：僅表身可滾動 */
+    /* 固定各欄位寬度設定：
+       - 第一欄「名稱」：5em（約可容納3~4個中文字）
+       - 第二欄「時段」：由 JS 處理 token 組合
+       - 第三欄「物種」：10.5ch（可容納類似 "165.45." 的字串）
+       - 第四欄「年齡」：7ch（足以顯示數字內容）
+    */
+    .header-table th:nth-child(1),
+    .body-table td:nth-child(1) {
+      width: 5em;
+    }
+    .header-table th:nth-child(2),
+    .body-table td:nth-child(2) {
+      /* 不設定 nowrap，讓內容能換行，但由 JS 處理 token 組合 */
+    }
+    .header-table th:nth-child(3),
+    .body-table td:nth-child(3) {
+      width: 10.5ch;
+    }
+    .header-table th:nth-child(4),
+    .body-table td:nth-child(4) {
+      width: 7ch;
+    }
+    /* 表身容器：獨立滾動 */
     .body-wrapper {
       flex: 1;
       min-height: 0;
@@ -157,6 +179,12 @@
     .body-table tr:hover {
       background: #e6e6e6;
       cursor: pointer;
+    }
+    /* 時段欄處理：將每個 token 包含分隔符號"."在內，
+       使得例如 "12." 就是一個完整的 token，
+       token 以 inline-block 呈現，整體換行時 token 不被拆分 */
+    .time-slot {
+      display: inline-block;
     }
     @media (max-width: 480px) {
       .container {
@@ -198,7 +226,7 @@
         <p id="introText">請從下方表格中選擇動物以查看介紹</p>
       </div>
     </section>
-    <!-- 分離的表格結構：表頭與表身 -->
+    <!-- 分離表頭與表身的表格結構 -->
     <div class="table-wrapper">
       <table class="header-table">
         <thead>
@@ -217,7 +245,7 @@
             <tr data-photo="{% if animal.photo %}{{ animal.photo.url }}{% else %}{% static 'image/animal_default.jpg' %}{% endif %}"
                 data-intro="名稱：{{ animal.name }}｜時段：{{ animal.time_slot }}｜物種：{{ animal.species }}｜年齡：{{ animal.age }}">
               <td>{{ animal.name }}</td>
-              <td>{{ animal.time_slot }}</td>
+              <td class="time-cell">{{ animal.time_slot }}</td>
               <td>{{ animal.species }}</td>
               <td>{{ animal.age }}</td>
             </tr>
@@ -229,7 +257,7 @@
   </div>
 
   <script>
-    // 同步表頭與表身欄位寬度
+    // 同步表頭與表身欄位寬度：根據表身第一列的實際寬度設定表頭寬度
     function syncTableColumnWidths() {
       const headerTable = document.querySelector('.header-table');
       const bodyTable = document.querySelector('.body-table');
@@ -245,11 +273,29 @@
       });
     }
 
-    window.addEventListener('resize', syncTableColumnWidths);
+    // 處理時段欄：以 "." 分割原始字串，
+    // 並將每個 token（含分隔符號）包裹於 span 中，
+    // 使得例如 "12." 成為一個完整 token。
+    function processTimeSlotCells() {
+      document.querySelectorAll('.time-cell').forEach(function(td) {
+        let text = td.textContent.trim();
+        // 若字串末尾沒有點號，可選擇是否補上，這裡假設每個 token原本就有分隔符號
+        let tokens = text.split('.').filter(token => token.trim() !== '');
+        // 每個 token皆補上"."再包裹於 span 中
+        tokens = tokens.map(token => '<span class="time-slot">' + token + '.</span>');
+        // 將所有 token 直接連接，讓換行時每個 token 為整體換行
+        td.innerHTML = tokens.join('');
+      });
+    }
+
+    window.addEventListener('resize', function() {
+      syncTableColumnWidths();
+    });
     document.addEventListener('DOMContentLoaded', function() {
       syncTableColumnWidths();
+      processTimeSlotCells();
 
-      // 為每個表身的列新增點擊事件，更新上方照片與介紹內容
+      // 為每個表身列新增點擊事件，點選後更新上方照片與介紹內容
       const tableRows = document.querySelectorAll('#animalTable tbody tr');
       tableRows.forEach(function(row) {
         row.addEventListener('click', function() {
