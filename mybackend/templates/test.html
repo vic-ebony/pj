@@ -38,10 +38,9 @@
       backdrop-filter: blur(8px);
       z-index: 0;
     }
-    /* 主要內容容器，固定高度為視窗高度減去外部 margin */
+    /* 主要內容容器 */
     .container {
       flex-grow: 1;
-      /* 這邊不再讓容器內部整體捲動，由內部區塊自行處理 */
       position: relative;
       z-index: 2;
       max-width: 800px;
@@ -55,7 +54,7 @@
       flex-direction: column;
       height: calc(100vh - 80px);
     }
-    /* 將標題上下空白縮小為 5px */
+    /* 標題區上下空白縮小為5px */
     .page-title {
       text-align: center;
       margin: 5px 0;
@@ -112,17 +111,16 @@
       text-align: center;
       background: #fff;
     }
-    /* 分離的表格結構：表頭與表身 */
+    /* 分離的表格結構 */
     .table-wrapper {
       margin-top: 20px;
       background: #fff;
-      /* 利用 flex 分配剩餘空間 */
       flex: 1;
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
-    /* 表頭表格 */
+    /* 表頭 */
     .header-table {
       width: 100%;
       border-collapse: collapse;
@@ -133,8 +131,11 @@
       border: 1px solid #ccc;
       text-align: left;
       background: #f0f0f0;
+      white-space: normal;
+      word-break: break-all;
+      overflow-wrap: break-word;
     }
-    /* 表身容器：僅表身可滾動，min-height: 0 讓 flex 子元素正確計算高度 */
+    /* 表身容器：僅表身可滾動 */
     .body-wrapper {
       flex: 1;
       min-height: 0;
@@ -149,6 +150,9 @@
       padding: 12px;
       border: 1px solid #ccc;
       text-align: left;
+      white-space: normal;
+      word-break: break-all;
+      overflow-wrap: break-word;
     }
     .body-table tr:hover {
       background: #e6e6e6;
@@ -200,9 +204,9 @@
         <thead>
           <tr>
             <th>名稱</th>
+            <th>時段</th>
             <th>物種</th>
             <th>年齡</th>
-            <th>體重 (kg)</th>
           </tr>
         </thead>
       </table>
@@ -211,11 +215,11 @@
           <tbody>
             {% for animal in animals %}
             <tr data-photo="{% if animal.photo %}{{ animal.photo.url }}{% else %}{% static 'image/animal_default.jpg' %}{% endif %}"
-                data-intro="名稱：{{ animal.name }}｜物種：{{ animal.species }}｜年齡：{{ animal.age }}｜體重：{{ animal.weight }} kg">
+                data-intro="名稱：{{ animal.name }}｜時段：{{ animal.time_slot }}｜物種：{{ animal.species }}｜年齡：{{ animal.age }}">
               <td>{{ animal.name }}</td>
+              <td>{{ animal.time_slot }}</td>
               <td>{{ animal.species }}</td>
               <td>{{ animal.age }}</td>
-              <td>{{ animal.weight }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -245,7 +249,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       syncTableColumnWidths();
 
-      // 為每個表身的列新增點擊事件，更新上方照片與介紹
+      // 為每個表身的列新增點擊事件，更新上方照片與介紹內容
       const tableRows = document.querySelectorAll('#animalTable tbody tr');
       tableRows.forEach(function(row) {
         row.addEventListener('click', function() {
