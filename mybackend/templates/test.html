@@ -3,6 +3,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
+  <!-- 讓網頁在各種裝置上適當縮放 -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>動物園每日展示</title>
   <style>
@@ -13,13 +14,15 @@
       --light-gray: #e6e6e6;
       --border-color: #ddd;
     }
+    /* 基本重設 */
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
+    /* 固定高度且隱藏頁面捲軸 */
     html, body {
-      min-height: 100vh;
+      height: 100vh;
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
       background: url('{% static "image/background.jpg" %}') no-repeat center center/cover;
       overflow: hidden;
@@ -27,6 +30,7 @@
       display: flex;
       flex-direction: column;
     }
+    /* 玻璃質感背景覆蓋 */
     .glass-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -34,10 +38,10 @@
       backdrop-filter: blur(8px);
       z-index: 0;
     }
+    /* 主要內容容器，固定高度為視窗高度減去外部 margin */
     .container {
       flex-grow: 1;
-      max-height: 100vh;
-      overflow: auto; /* 改成 auto 讓下方資訊卡不會被裁切 */
+      /* 這邊不再讓容器內部整體捲動，由內部區塊自行處理 */
       position: relative;
       z-index: 2;
       max-width: 800px;
@@ -49,6 +53,7 @@
       box-shadow: 0 10px 20px rgba(0,0,0,0.2);
       display: flex;
       flex-direction: column;
+      height: calc(100vh - 80px);
     }
     .page-title {
       text-align: center;
@@ -65,7 +70,7 @@
       border-bottom: 1px solid var(--border-color);
     }
     .hall-menu a {
-      flex: none;
+      flex-shrink: 0;
       padding: 8px 12px;
       text-decoration: none;
       color: var(--primary-color);
@@ -73,12 +78,13 @@
       border-radius: 5px;
       white-space: nowrap;
     }
-    .hall-menu a.active, .hall-menu a:hover {
+    .hall-menu a.active,
+    .hall-menu a:hover {
       background: var(--light-gray);
     }
     .top-section {
       display: flex;
-      align-items: stretch;  /* 讓兩邊高度一致 */
+      align-items: stretch;
       border-bottom: 1px solid var(--border-color);
     }
     .photo-area {
@@ -105,30 +111,45 @@
       text-align: center;
       background: #fff;
     }
-    .table-container {
-      flex-grow: 1;
-      overflow: auto;
-      max-height: 50vh;
-      background: #fff;
-      position: relative;
+    /* 分離的表格結構：表頭與表身 */
+    .table-wrapper {
       margin-top: 20px;
+      background: #fff;
+      /* 利用 flex 分配剩餘空間 */
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
-    table {
+    /* 表頭表格 */
+    .header-table {
       width: 100%;
       border-collapse: collapse;
+      table-layout: fixed;
     }
-    th, td {
+    .header-table th {
+      padding: 12px;
+      border: 1px solid #ccc;
+      text-align: left;
+      background: #f0f0f0;
+    }
+    /* 表身容器：僅表身可滾動，min-height: 0 讓 flex 子元素正確計算高度 */
+    .body-wrapper {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+    }
+    .body-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    .body-table td {
       padding: 12px;
       border: 1px solid #ccc;
       text-align: left;
     }
-    thead th {
-      background: #f0f0f0;
-      position: sticky;
-      top: 0;
-      z-index: 2;
-    }
-    tr:hover {
+    .body-table tr:hover {
       background: #e6e6e6;
       cursor: pointer;
     }
@@ -137,20 +158,13 @@
         max-width: 95%;
         margin: 20px auto;
         padding: 10px;
+        height: calc(100vh - 40px);
       }
-      /* 保持 .top-section 為 row 排列 */
       .photo-area {
-        flex: 0 0 60%;
-        height: 200px; /* 手機上縮小高度 */
-        padding: 10px;
-        border-right: 1px solid var(--border-color);
+        height: 200px;
       }
       .intro-area {
-        flex: 0 0 40%;
         padding: 10px;
-      }
-      .table-container {
-        max-height: 40vh;
       }
     }
   </style>
@@ -179,8 +193,9 @@
         <p id="introText">請從下方表格中選擇動物以查看介紹</p>
       </div>
     </section>
-    <div class="table-container">
-      <table id="animalTable">
+    <!-- 分離的表格結構：表頭與表身 -->
+    <div class="table-wrapper">
+      <table class="header-table">
         <thead>
           <tr>
             <th>名稱</th>
@@ -189,19 +204,82 @@
             <th>體重 (kg)</th>
           </tr>
         </thead>
-        <tbody>
-          {% for animal in animals %}
-          <tr data-photo="{% if animal.photo %}{{ animal.photo.url }}{% else %}{% static 'image/animal_default.jpg' %}{% endif %}"
-              data-intro="名稱：{{ animal.name }}｜物種：{{ animal.species }}｜年齡：{{ animal.age }}｜體重：{{ animal.weight }} kg">
-            <td>{{ animal.name }}</td>
-            <td>{{ animal.species }}</td>
-            <td>{{ animal.age }}</td>
-            <td>{{ animal.weight }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
       </table>
+      <div class="body-wrapper">
+        <table class="body-table" id="animalTable">
+          <tbody>
+            {% for animal in animals %}
+            <tr data-photo="{% if animal.photo %}{{ animal.photo.url }}{% else %}{% static 'image/animal_default.jpg' %}{% endif %}"
+                data-intro="名稱：{{ animal.name }}｜物種：{{ animal.species }}｜年齡：{{ animal.age }}｜體重：{{ animal.weight }} kg">
+              <td>{{ animal.name }}</td>
+              <td>{{ animal.species }}</td>
+              <td>{{ animal.age }}</td>
+              <td>{{ animal.weight }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
+
+  <script>
+    // 同步表頭與表身欄位寬度
+    function syncTableColumnWidths() {
+      const headerTable = document.querySelector('.header-table');
+      const bodyTable = document.querySelector('.body-table');
+      const headerCells = headerTable.querySelectorAll('th');
+      const firstBodyRow = bodyTable.querySelector('tr');
+      if (!firstBodyRow) return;
+      const bodyCells = firstBodyRow.querySelectorAll('td');
+      
+      headerCells.forEach((th, index) => {
+        const bodyCell = bodyCells[index];
+        const cellWidth = bodyCell.getBoundingClientRect().width;
+        th.style.width = cellWidth + "px";
+      });
+    }
+
+    window.addEventListener('resize', syncTableColumnWidths);
+    document.addEventListener('DOMContentLoaded', function() {
+      syncTableColumnWidths();
+
+      // 為每個表身的列新增點擊事件，更新上方照片與介紹
+      const tableRows = document.querySelectorAll('#animalTable tbody tr');
+      tableRows.forEach(function(row) {
+        row.addEventListener('click', function() {
+          const photoUrl = this.getAttribute('data-photo');
+          const introText = this.getAttribute('data-intro');
+
+          // 更新照片區塊
+          const photoArea = document.getElementById('photoArea');
+          const imgElement = photoArea.querySelector('img');
+          if (imgElement) {
+            imgElement.src = photoUrl;
+            imgElement.alt = this.cells[0].textContent;
+          } else {
+            photoArea.innerHTML = '';
+            const newImg = document.createElement('img');
+            newImg.src = photoUrl;
+            newImg.alt = this.cells[0].textContent;
+            photoArea.appendChild(newImg);
+          }
+
+          // 更新介紹區塊
+          const introArea = document.getElementById('introArea');
+          const introP = introArea.querySelector('p');
+          if (introP) {
+            introP.textContent = introText;
+          } else {
+            introArea.innerHTML = '';
+            const newP = document.createElement('p');
+            newP.id = "introText";
+            newP.textContent = introText;
+            introArea.appendChild(newP);
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
