@@ -7,85 +7,115 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>動物園每日展示</title>
   <style>
-    :root {
-      --bg-overlay: rgba(255,255,255,0.2);
-      --container-bg: rgba(255,255,255,0.95);
-      --primary-color: #333;
-      --light-gray: #e6e6e6;
-      --border-color: #ddd;
-    }
-    /* 基本重設 */
-    * {
+    /* 基本重設與安全區域設定 */
+    html, body {
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-    }
-    /* 固定頁面高度並隱藏全頁捲軸 */
-    html, body {
+      overflow: hidden;
       height: 100vh;
+      /* 保留安全區域 */
+      padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+      box-sizing: border-box;
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
       background: url('{% static "image/background.jpg" %}') no-repeat center center/cover;
-      overflow: hidden;
-      padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
       display: flex;
       flex-direction: column;
     }
-    /* 玻璃質感背景覆蓋 */
+    *, *::before, *::after {
+      box-sizing: inherit;
+    }
+    /* 外層玻璃容器，採用 flex 但不置中 */
     .glass-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: var(--bg-overlay);
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start; /* 從上開始排列 */
+      align-items: stretch;
+      overflow: hidden;
+    }
+    .glass-background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255,255,255,0.2);
       backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.18);
       z-index: 0;
     }
-    /* 主要內容容器 */
-    .container {
-      flex-grow: 1;
+    /* 內層內容區，使用 flex-grow 讓總高度正好扣除上下 margin */
+    .content {
       position: relative;
-      z-index: 2;
-      max-width: 800px;
-      margin: 40px auto;
+      z-index: 1;
+      background: rgba(255,255,255,0.25);
       padding: 20px;
-      background: var(--container-bg);
       border-radius: 15px;
-      border-top: 2px solid var(--border-color);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
+      width: 95%;
+      max-width: 800px;
+      margin: 20px auto;
+      flex-grow: 1;
+      /* 移除固定高度設定 */
+      /* height: calc(100vh - 80px); */
+      overflow: hidden;
+      animation: fadeInUp 1s forwards;
+      transform: translateZ(0);
+      will-change: opacity, transform;
+      background-clip: padding-box;
       display: flex;
       flex-direction: column;
-      height: calc(100vh - 80px);
     }
-    /* 標題區上下空白縮小為5px */
-    .page-title {
-      text-align: center;
-      margin: 5px 0;
-      color: var(--primary-color);
-      font-size: 2rem;
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px) translateZ(0);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) translateZ(0);
+      }
     }
+    /* 導覽列與按鈕玻璃質感風格 */
     .hall-menu {
       display: flex;
       overflow-x: auto;
       gap: 10px;
       padding: 10px;
-      background: #f8f8f8;
-      border-bottom: 1px solid var(--border-color);
+      background: rgba(255,255,255,0.35);
+      border-radius: 10px;
+      margin-bottom: 10px;
     }
     .hall-menu a {
       flex-shrink: 0;
       padding: 8px 12px;
       text-decoration: none;
-      color: var(--primary-color);
-      border: 1px solid var(--border-color);
+      color: #333;
+      background: rgba(255,255,255,0.35);
+      border: 1px solid rgba(255,255,255,0.5);
       border-radius: 5px;
       white-space: nowrap;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: background 0.3s;
     }
     .hall-menu a.active,
     .hall-menu a:hover {
-      background: var(--light-gray);
+      background: rgba(255,255,255,0.5);
     }
+    /* 上方區：照片與介紹 */
     .top-section {
       display: flex;
       align-items: stretch;
-      border-bottom: 1px solid var(--border-color);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     .photo-area {
       flex: 0 0 60%;
@@ -93,8 +123,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      border-right: 1px solid var(--border-color);
-      background: #fff;
+      border-right: 1px solid rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.35);
       padding: 10px;
     }
     .photo-area img {
@@ -109,18 +139,25 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      background: #fff;
+      background: rgba(255,255,255,0.35);
     }
-    /* 分離表頭與表身的表格結構 */
+    .page-title {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #333;
+      font-size: 2rem;
+    }
+    /* 表格區域 */
     .table-wrapper {
-      margin-top: 20px;
-      background: #fff;
-      flex: 1;
+      margin-top: 10px;
+      background: rgba(255,255,255,0.35);
+      border-radius: 10px;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      flex: 1;  /* 表格區自動填滿剩餘空間 */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    /* 表頭：使用 table-layout: fixed */
     .header-table {
       width: 100%;
       border-collapse: collapse;
@@ -128,26 +165,20 @@
     }
     .header-table th {
       padding: 12px;
-      border: 1px solid #ccc;
+      border: 1px solid rgba(0,0,0,0.1);
       text-align: left;
-      background: #f0f0f0;
+      background: rgba(255,255,255,0.5);
       white-space: normal;
       word-break: break-all;
       overflow-wrap: break-word;
     }
-    /* 固定各欄位寬度設定：
-       - 第一欄「名稱」：5em（約可容納3~4個中文字）
-       - 第二欄「時段」：由 JS 處理 token 組合
-       - 第三欄「物種」：10.5ch（可容納類似 "165.45." 的字串）
-       - 第四欄「年齡」：7ch（足以顯示數字內容）
-    */
     .header-table th:nth-child(1),
     .body-table td:nth-child(1) {
       width: 5em;
     }
     .header-table th:nth-child(2),
     .body-table td:nth-child(2) {
-      /* 不設定 nowrap，讓內容能換行，但由 JS 處理 token 組合 */
+      /* 動態寬度 */
     }
     .header-table th:nth-child(3),
     .body-table td:nth-child(3) {
@@ -157,7 +188,6 @@
     .body-table td:nth-child(4) {
       width: 7ch;
     }
-    /* 表身容器：獨立滾動 */
     .body-wrapper {
       flex: 1;
       min-height: 0;
@@ -170,28 +200,23 @@
     }
     .body-table td {
       padding: 12px;
-      border: 1px solid #ccc;
+      border: 1px solid rgba(0,0,0,0.1);
       text-align: left;
       white-space: normal;
       word-break: break-all;
       overflow-wrap: break-word;
+      background: rgba(255,255,255,0.35);
     }
     .body-table tr:hover {
-      background: #e6e6e6;
+      background: rgba(255,255,255,0.5);
       cursor: pointer;
     }
-    /* 時段欄處理：將每個 token 包含分隔符號"."在內，
-       使得例如 "12." 就是一個完整的 token，
-       token 以 inline-block 呈現，整體換行時 token 不被拆分 */
     .time-slot {
       display: inline-block;
     }
     @media (max-width: 480px) {
-      .container {
-        max-width: 95%;
-        margin: 20px auto;
+      .content {
         padding: 10px;
-        height: calc(100vh - 40px);
       }
       .photo-area {
         height: 200px;
@@ -200,64 +225,147 @@
         padding: 10px;
       }
     }
+    /* 表單模態框（Modal）：表單部分保持原本設定 */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 10;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+    }
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #333;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .form-group input[type="text"],
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .form-group textarea {
+      resize: vertical;
+    }
+    button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 5px;
+      background: rgba(255,255,255,0.35);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: rgba(255,255,255,0.5);
+    }
   </style>
 </head>
 <body>
-  <div class="glass-overlay"></div>
-  <div class="container">
-    <div class="page-title">動物園 - 動物清單</div>
-    <nav class="hall-menu">
-      <a href="{% url 'home' %}" class="{% if not request.GET.hall_id %}active{% endif %}">全部</a>
-      {% for hall in halls %}
-        <a href="{% url 'home' %}?hall_id={{ hall.id }}" class="{% if request.GET.hall_id|stringformat:"s" == hall.id|stringformat:"s" %}active{% endif %}">
-          {{ hall.name }}
-        </a>
-      {% endfor %}
-    </nav>
-    <section class="top-section">
-      <div class="photo-area" id="photoArea">
-        {% if animals|length > 0 and animals.0.photo %}
-          <img src="{{ animals.0.photo.url }}" alt="{{ animals.0.name }}">
-        {% else %}
-          <img src="{% static 'image/animal_default.jpg' %}" alt="預設照片">
-        {% endif %}
-      </div>
-      <div class="intro-area" id="introArea">
-        <p id="introText">請從下方表格中選擇動物以查看介紹</p>
-      </div>
-    </section>
-    <!-- 分離表頭與表身的表格結構 -->
-    <div class="table-wrapper">
-      <table class="header-table">
-        <thead>
-          <tr>
-            <th>名稱</th>
-            <th>時段</th>
-            <th>身材</th>
-            <th>台費</th>
-          </tr>
-        </thead>
-      </table>
-      <div class="body-wrapper">
-        <table class="body-table" id="animalTable">
-          <tbody>
-            {% for animal in animals %}
-            <tr data-photo="{% if animal.photo %}{{ animal.photo.url }}{% else %}{% static 'image/animal_default.jpg' %}{% endif %}"
-                data-intro="名稱：{{ animal.name }}｜時段：{{ animal.time_slot }}｜身材：{{ animal.size_display }}｜台費：{{ animal.fee }}">
-              <td>{{ animal.name }}</td>
-              <td class="time-cell">{{ animal.time_slot }}</td>
-              <td>{{ animal.size_display }}</td>
-              <td>{{ animal.fee }}</td>
+  <div class="glass-overlay">
+    <div class="glass-background"></div>
+    <div class="content">
+      <div class="page-title">動物園 - 動物清單</div>
+      <nav class="hall-menu">
+        <a href="{% url 'home' %}" class="{% if not request.GET.hall_id %}active{% endif %}">全部</a>
+        {% for hall in halls %}
+          <a href="{% url 'home' %}?hall_id={{ hall.id }}" class="{% if request.GET.hall_id|stringformat:"s" == hall.id|stringformat:"s" %}active{% endif %}">
+            {{ hall.name }}
+          </a>
+        {% endfor %}
+      </nav>
+      <section class="top-section">
+        <div class="photo-area" id="photoArea">
+          {% if animals|length > 0 and animals.0.photo %}
+            <img src="{{ animals.0.photo.url }}" alt="{{ animals.0.name }}">
+          {% else %}
+            <img src="{% static 'image/animal_default.jpg' %}" alt="預設照片">
+          {% endif %}
+        </div>
+        <div class="intro-area" id="introArea">
+          <p id="introText">請從下方表格中選擇動物以查看介紹</p>
+        </div>
+      </section>
+      <!-- 表格區 -->
+      <div class="table-wrapper">
+        <table class="header-table">
+          <thead>
+            <tr>
+              <th>名稱</th>
+              <th>時段</th>
+              <th>身材</th>
+              <th>台費</th>
             </tr>
-            {% endfor %}
-          </tbody>
+          </thead>
         </table>
+        <div class="body-wrapper">
+          <table class="body-table" id="animalTable">
+            <tbody>
+              {% for animal in animals %}
+              <tr data-photo="{% if animal.photo %}{{ animal.photo.url }}{% else %}{% static 'image/animal_default.jpg' %}{% endif %}"
+                  data-intro="名稱：{{ animal.name }}｜時段：{{ animal.time_slot }}｜身材：{{ animal.size_display }}｜台費：{{ animal.fee }}">
+                <td>{{ animal.name }}</td>
+                <td class="time-cell">{{ animal.time_slot }}</td>
+                <td>{{ animal.size_display }}</td>
+                <td>{{ animal.fee }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- 表單模態框 -->
+  <div id="formModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeFormModal">&times;</span>
+      <h2>填寫表單</h2>
+      <form id="sampleForm">
+        <div class="form-group">
+          <label for="name">姓名：</label>
+          <input type="text" id="name" name="name" placeholder="請輸入姓名">
+        </div>
+        <div class="form-group">
+          <label for="info">介紹：</label>
+          <textarea id="info" name="info" placeholder="請輸入介紹"></textarea>
+        </div>
+        <button type="submit">送出表單</button>
+      </form>
+    </div>
+  </div>
+
   <script>
-    // 同步表頭與表身欄位寬度：根據表身第一列的實際寬度設定表頭寬度
+    // 同步表頭與表身欄位寬度
     function syncTableColumnWidths() {
       const headerTable = document.querySelector('.header-table');
       const bodyTable = document.querySelector('.body-table');
@@ -273,36 +381,27 @@
       });
     }
 
-    // 處理時段欄：以 "." 分割原始字串，
-    // 並將每個 token（含分隔符號）包裹於 span 中，
-    // 使得例如 "12." 成為一個完整 token。
+    // 處理時段欄：以 "." 分割，並包入 span
     function processTimeSlotCells() {
       document.querySelectorAll('.time-cell').forEach(function(td) {
         let text = td.textContent.trim();
-        // 若字串末尾沒有點號，可選擇是否補上，這裡假設每個 token原本就有分隔符號
         let tokens = text.split('.').filter(token => token.trim() !== '');
-        // 每個 token皆補上"."再包裹於 span 中
         tokens = tokens.map(token => '<span class="time-slot">' + token + '.</span>');
-        // 將所有 token 直接連接，讓換行時每個 token 為整體換行
         td.innerHTML = tokens.join('');
       });
     }
 
-    window.addEventListener('resize', function() {
-      syncTableColumnWidths();
-    });
+    window.addEventListener('resize', syncTableColumnWidths);
     document.addEventListener('DOMContentLoaded', function() {
       syncTableColumnWidths();
       processTimeSlotCells();
 
-      // 為每個表身列新增點擊事件，點選後更新上方照片與介紹內容
+      // 為表格列新增點擊事件，更新上方照片與介紹
       const tableRows = document.querySelectorAll('#animalTable tbody tr');
       tableRows.forEach(function(row) {
         row.addEventListener('click', function() {
           const photoUrl = this.getAttribute('data-photo');
           const introText = this.getAttribute('data-intro');
-
-          // 更新照片區塊
           const photoArea = document.getElementById('photoArea');
           const imgElement = photoArea.querySelector('img');
           if (imgElement) {
@@ -315,8 +414,6 @@
             newImg.alt = this.cells[0].textContent;
             photoArea.appendChild(newImg);
           }
-
-          // 更新介紹區塊
           const introArea = document.getElementById('introArea');
           const introP = introArea.querySelector('p');
           if (introP) {
@@ -329,6 +426,25 @@
             introArea.appendChild(newP);
           }
         });
+      });
+
+      // 表單模態框功能
+      const formModal = document.getElementById('formModal');
+      const closeFormModal = document.getElementById('closeFormModal');
+      closeFormModal.addEventListener('click', function() {
+        formModal.style.display = 'none';
+      });
+      window.addEventListener('click', function(e) {
+        if (e.target == formModal) {
+          formModal.style.display = 'none';
+        }
+      });
+      
+      // 表單提交事件（示範用）
+      document.getElementById('sampleForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert("表單已送出！");
+        formModal.style.display = 'none';
       });
     });
   </script>
