@@ -76,16 +76,18 @@ WSGI_APPLICATION = 'mybackend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+import os
+import dj_database_url
+
+# 取得 DATABASE_URL，確保 Django 連接 Railway 的 PostgreSQL
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mydatabase',
-        'USER': '31628',
-        'PASSWORD': 'gl4au6PW!!!!',
-        'HOST': 'localhost',  # 或遠端 PostgreSQL 伺服器 IP
-        'PORT': '5432',  # PostgreSQL 預設端口
-    }
+    'default': dj_database_url.config(
+        default='postgresql://postgres:lipzvpiokEHPVuTFkfSmszQjynHpoGop@postgres-xnsg.railway.internal:5432/railway',
+        conn_max_age=600,  # 保持長連接
+        ssl_require=True   # 強制使用 SSL（如有需要）
+    )
 }
+
 
 
 
