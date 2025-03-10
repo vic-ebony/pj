@@ -78,14 +78,15 @@ WSGI_APPLICATION = 'mybackend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydatabase',       # 你在 MySQL 中建立的資料庫名稱
-        'USER': 'root',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mydatabase',
+        'USER': '31628',
         'PASSWORD': 'gl4au6PW!!!!',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'HOST': 'localhost',  # 或遠端 PostgreSQL 伺服器 IP
+        'PORT': '5432',  # PostgreSQL 預設端口
     }
 }
+
 
 
 
